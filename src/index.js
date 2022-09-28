@@ -11,17 +11,23 @@ const costumers = [];
 // Create new account with (CPF, Name, Id, Statement)
 
 app.post("/account", (req, res) => {
-  const id = uuidv4();
+
   const { cpf, name } = req.body;
+  
+  const costumersAlredyExists = costumers.some(costumer => costumer.cpf === cpf);
+
+  if(costumersAlredyExists) {
+    return res.status(400).json({ error: "Account alredy exists!" })
+  }
 
   costumers.push({
-    id,
+    id: uuidv4(),
     cpf,
     name,
     statement: []
   })
 
-  return res.send("Account created successfully!");
+  return res.json({ message: "Account created successfully!"});
 });
 
 app.listen(port);
