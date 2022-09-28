@@ -13,7 +13,7 @@ const costumers = [];
 app.post("/account", (req, res) => {
 
   const { cpf, name } = req.body;
-  
+
   const costumersAlredyExists = costumers.some(costumer => costumer.cpf === cpf);
 
   if(costumersAlredyExists) {
@@ -28,6 +28,19 @@ app.post("/account", (req, res) => {
   })
 
   return res.json({ message: "Account created successfully!"});
-});
+})
+
+app.get("/statement/:cpf", (req, res) => {
+
+  const { cpf } = req.params;
+
+  const costumer = costumers.find(costumer => costumer.cpf === cpf);
+
+  if(!costumer) {
+    return res.status(400).json({ error: "User not found." });
+  }
+
+  return res.json(costumers.statement);
+})
 
 app.listen(port);
