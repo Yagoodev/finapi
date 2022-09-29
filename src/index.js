@@ -10,30 +10,30 @@ const costumers = [];
 
 // Middleware
 
-function verifyIfExistsAccount(req, res, next) {
-  const { cpf } = req.params;
+function verifyIfExistsAccount(request, response, next) {
+  const { cpf } = request.headers;
 
   const costumer = costumers.find(costumer => costumer.cpf === cpf);
 
   if (!costumer) {
-    return res.status(401).send('Costumer not found.');
+    return response.status(404).send('Costumer not found.');
   }
 
   // Passing costumer to request.
-  req.costumer = costumer;
+  request.costumer = costumer;
 
   return next();
 }
 
 // Create new account with (CPF, Name, Id, Statement)
 
-app.post("/account", (req, res) => {
-  const { cpf, name } = req.body;
+app.post("/account", (request, response) => {
+  const { cpf, name } = request.body;
 
   const costumersAlredyExists = costumers.some(costumer => costumer.cpf === cpf);
 
   if (costumersAlredyExists) {
-    return res.status(400).json({ error: "Account alredy exists." })
+    return response.status(400).json({ error: "Account alredy exists." })
   }
 
   costumers.push({
@@ -43,13 +43,30 @@ app.post("/account", (req, res) => {
     statement: []
   })
 
-  return res.json({ message: "Account created successfully!" });
+  return response.json({ message: "Account created successfully!" });
 })
 
-app.get("/statement/:cpf", verifyIfExistsAccount, (req, res) => {
-  const { costumer } = req;
+app.get("/statement", verifyIfExistsAccount, (request, response) => {
+  const { costumer } = request;
 
-  return res.json(costumer.statement);
+  return response.json(costumer.statement);
+})
+
+app.post("/deposit", verifyIfExistsAccount, (request, response) => {
+  const { costumer } = request;
+  const { description, amount } = request.body;
+
+  const statementOperation = {
+    createdAt: new Date(),
+    cpf: costumer.cpf,
+    type: "credit",
+    description,
+    amount
+  }
+
+  costumer.statement.push(statementOperation);
+
+  return response.status(201).json({ message: "Statement made has successfully" });
 })
 
 app.listen(port);
